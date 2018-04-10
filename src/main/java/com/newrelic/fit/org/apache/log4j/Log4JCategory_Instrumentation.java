@@ -27,11 +27,7 @@ public class Log4JCategory_Instrumentation {
 	public void error(Object message) {
 		Weaver.callOriginal();
 		
-		if (message instanceof String) {
-			NewRelic.noticeError((String)message, PARAMS);
-		} else {		
-			NewRelic.noticeError(message.toString(), PARAMS);
-		} 
+		NewRelic.noticeError(message.toString(), PARAMS); 
 	}
 	
 	public void error(Object message, Throwable t) {
