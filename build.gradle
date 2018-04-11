@@ -1,62 +1,57 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        maven {
+            url 'https://pdx-artifacts.pdx.vm.datanerd.us/repo'
+        }
+        maven {
+            url 'https://repo1.maven.org/maven2'
+        }
+        maven {
+            url 'https://jcenter.bintray.com'
+        }
+    }
+}
+
 apply plugin: 'java'
 apply plugin: 'eclipse'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
 sourceCompatibility = JavaVersion.VERSION_1_6
 targetCompatibility = JavaVersion.VERSION_1_6
 
-repositories {
-   maven {
-      url 'https://repo1.maven.org/maven2'
-   }
-   flatDir {
-       dirs 'lib'
-   }
+ext {
+   group = 'com.newrelic.instrumentation'
+   releaseVersion="1.0"
+   newrelicVersion="3.47.1"
 }
 
-group = 'com.newrelic.instrumentation'
-version = '1.0'
+repositories {
+   mavenLocal()
+   jcenter()
+   mavenCentral()
+//   flatDir {
+//       dirs 'lib'
+//   }
+}
 
 dependencies {
-  // Agent and Weave API jars:
-  //compile 'com.newrelic.agent.java:newrelic-api:3.26.1'
-  //compile 'com.newrelic.agent.java:newrelic-weaver-api:3.26.1'
-  //compile 'com.newrelic.agent.java:agent-bridge:3.26.1'
+  compile "com.newrelic.agent.java:newrelic-agent:${newrelicVersion}"
+  compile "com.newrelic.agent.java:newrelic-api:${newrelicVersion}"
   
   // If using older agent JARs to compile
-  compile fileTree(dir: 'lib', includes: ['*.jar'])
+  // compile fileTree(dir: 'lib', includes: ['*.jar'])
       
   // 3rd party jars needed to compile:
-  compile 'javax.servlet:servlet-api:2.5'
+  // compile 'javax.servlet:servlet-api:2.5'
   compile group: 'log4j', name: 'log4j', version: '1.2.17'
 }
 
 jar {
   manifest {
-       attributes 'Implementation-Title': project.group + '.' + project.name, 'Implementation-Vendor-Id': 'Field Instrumentation', 'Implementation-Version': version
+    attributes 'Implementation-Title': group + 'logging'
+    attributes 'Implementation-Vendor': 'com.newrelic'
+    attributes 'Implementation-Version': releaseVersion
   }
-}
-
-task install(dependsOn: jar, type: Copy) {
-    description = 'Copies compiled jar to the NEW_RELIC_EXTENSIONS_DIR.'
-    group  = 'New Relic'
-
-    def extDir = System.getenv("NEW_RELIC_EXTENSIONS_DIR") ?: " "
-
-    from jar
-    into extDir
-}
-
-install.doFirst  {
-    def extDir = System.getenv("NEW_RELIC_EXTENSIONS_DIR")
-     if (extDir == null) {
-         throw new Exception("Must set NEW_RELIC_EXTENSIONS_DIR.")
-     }
-
-     if (extDir.startsWith("~" + File.separator)) {
-         extDir = System.getProperty("user.home") + extDir.substring(1);
-     }
-
-     if (!file(extDir).directory) {
-         throw new Exception(extDir + "NEW_RELIC_EXTENSIONS_DIR, set as '" + extDir + "'is not a valid directory.")
-     }
 }
